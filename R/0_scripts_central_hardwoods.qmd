@@ -1,0 +1,171 @@
+---
+title: "Call scripts for Central Hardwoods project"
+format: html
+theme: simplex
+editor: visual
+execute:
+  eval: false
+---
+
+This script is for making calls for the central hardwood project. Since most of the calls occur on the command line, it is probably best to copy the calls directly to the command line (this is likely the only approach when operating on cluster), so as not to bog down RStudio. However, for short calls, RHESSys will run from this script and the command line output will be displayed below the call.
+
+## RHESSys set-up
+
+### General notes
+
+-   For each unique watershed setup, whether it be a subwatershed or a watershed with a different patch size, all of these set-up steps needs to be repeated. Each of these watersheds will reside in a unique folder. On the other hand, modifications within a watershed, such as land cover, can be designated as sites and run within a watershed setup. The exception to this process is watersheds that are derived outside of this (2.1 - \~2.15) process, e.g. patch-scale sites. These can be considered to be sites.
+
+### Land cover and cover fraction rasters
+
+There are two scripts available and are run directly. - 2.4_get_nlcd_and_create_lc_cf_products first downloads nlcd data and then resamples the landscape into the plant functional types needed for this project. This script was developed first and is unlikely to be used going forward on this project. - 2.4_create_lc_cf_products provides more flexibility for generating synthetic land covers. A period is defined and the script will produce a landscape containing the proportions designated.
+
+### Generate clim grid
+
+TBD
+
+### Clip landscape raster by basin
+
+This function clips each '\_landscape' raster to the designated basin. Need to repeat this step whenever a raster (DEM, DEM-derived, land-cover, cover fraction) is modified.
+
+## Patch level spin-up
+
+*Be careful with this script. It will overwrite parameter sets. Only run if you want to redo all steps in calibration.*
+
+Each of these scripts gets repeated for each watershed. Only barren is shown in examples. - Time: 1.8 minutes for 100 ps at 2 cores
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren redmaple
+#Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren sugarmaple
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren redoak
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren whiteoak
+#Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren whitepine
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren shortleafpine
+#Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren shrub
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/4.1_inputs_spinup_site.R barren grass
+```
+
+These next set of scripts are for evaluating the spin-up simulations. - Time: 10 seconds for 100 ps
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren redmaple
+#Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren sugarmaple
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren redoak
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren whiteoak
+#Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren whitepine
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren shortleafpine
+#Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren shrub
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren grass
+```
+
+The previous scripts do not evaluate collectively. The following is what is actually needed. The key is to change the filter_type parameter in the filter_table from "watershed_site", which is needed for running the model, to "watershed", which is needed for evaluation.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/4.1_inputs_spinup_site.R barren
+```
+
+## Patch-level calibration
+
+Nothing for now. Go straight to watershed-level spinup.
+
+## Watershed level spin-up
+
+The 6.1 script is for the watershed spinup. To minimize the size of the output for this 'long' simulation, only two carbon variables are exported at the basin scale, which can be checked for general behavior.
+
+The following script gets repeated for each watershed. Only barren is shown in examples.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/6.1_inputs_spinup_watershed.R barren watershedmodern
+```
+
+The next script is for evaluating the spin-up simulations. It makes a parameter_set_behavioral_record, but doesn't produce figures, similar to CARB project. I should eventually make sure this step can be outputted to figures.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/6.1_inputs_spinup_watershed.R barren watershedmodern
+```
+
+When exporting a worldfile after spinpup, the outputted worldfile has a name similar to this 'lusk_watershed.world1.Y2020M9D30H1.state', where a number is attached to .world, a date corresponding to the date the world was exported, and a .state extension. This gets ...
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_move_and_rename_worldfiles()' R/6.1_inputs_spinup_watershed.R barren watershedmodern
+```
+
+## Watershed-level calibration
+
+The 7.1 script is for the watershed streamflow calibration.
+
+The following script gets repeated for each watershed. Only barren is shown in examples.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/7.1_inputs_calibration_watershed_streamflow.R barren watershedmodern
+```
+
+The next script is for evaluating streamflow calibration. It requires observed streamflow in the \*\* file. By selecting the `objective_function_behavioral_threshold` parameter in the 7.1 script to be equal to 1, this script will select the best parameter set.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_evaluate_simulation_step()' R/7.1_inputs_calibration_watershed_streamflow.R barren watershedmodern
+```
+
+Since we are restarting our calibration with fire, the following function resets all vegetation and subsurface parameters to be equal to the best parameter set and moves the worldfile and adds a fire id to the worldfile. It also uses its own input file, `7.2_inputs_calibration_reset.R`. Note: Script took about 7 minutes for Lusk.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_reset_parameters_and_worldfile()' R/7.2_inputs_calibration_reset.R barren watershedmodern
+```
+
+## Watershed-level fire calibration
+
+The 8.1 script is for the watershed-level fire calibration.
+
+Time: For Barren, 6.1 hours for 10 20-year runs using 10 cpus in series (old mac) Time: For Barren, 2.2 hours for 10 20-year runs using 10 cpus in parallel (old mac). Memory usage maxed at 6.7G.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/8.1_inputs_calibration_fire.R barren watershedmodern
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/8.1_inputs_calibration_fire.R barren watershedredmaple
+
+```
+
+The next script is a specific script for evaluating fire output.
+
+Time: For Barren, ~20 minutes for 10 20-year runs on single CPU.
+
+```{bash}
+Rscript 8.2_wrangle_fire_annual.R
+```
+
+
+## Watershed-level sensitivity simulations
+
+The call_reset_parameters_and_worldfile function resets all vegetation and subsurface parameters to be equal to the best parameter set and moves the worldfile and adds a fire id to the worldfile. These simulation will only have 1 replicate of the best parameter set, rather than 10 when doing the fire calibration. So we need to redo this reset. Note: Script took about \*\* minutes for Barren.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_reset_parameters_and_worldfile()' R/7.3_inputs_sensitivity_simulation_reset.R barren watershedmodern
+```
+
+The 9.1 script is for the watershed-level sensitivity simulation.
+
+Time: For Barren, 5.6 hours for 36 30-year runs using 9 cpus in parallel with cooling rack/fan and historic met data.
+
+```{bash}
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedgrass
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedredmaplewoodland
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedredmapleclosedcanopy
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedredoakwoodland
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedredoakclosedcanopy
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedshortleafpinewoodland
+Rscript -e 'RHESSysWorkflowinR::call_execute_simulation_step()' R/9.1_inputs_sensitivity_simulation.R barren watershedshortleafpineclosedcanopy
+```
+
+The next script is a specific script for evaluating sensitivity simulation output.
+
+Note that the top section in script must be changed manually
+
+Time: 55 minutes in Barren for single watershed/site.
+
+```{bash}
+Rscript R/9.2_wrangle_sensitivity_annual.R
+```
+
+
+
+
+
+
