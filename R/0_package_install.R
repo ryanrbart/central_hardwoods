@@ -25,7 +25,6 @@ install.packages("raster", dependencies = TRUE)
 install.packages("readr", dependencies = TRUE)
 install.packages("remotes", dependencies = TRUE)
 install.packages("rlang", dependencies = TRUE)
-install.packages("sf", dependencies = TRUE)
 install.packages("terra", dependencies = TRUE)
 install.packages("tibble", dependencies = TRUE)
 install.packages("zoo", dependencies = TRUE)
@@ -34,8 +33,8 @@ install.packages("zoo", dependencies = TRUE)
 # Github packages
 remotes::install_github("ucanr-igis/caladaptr", dependencies = TRUE)
 remotes::install_github("RHESSys/RHESSysIOinR", ref="develop", dependencies = TRUE)
-remotes::install_github("RHESSys/RHESSysPreprocessing", dependencies = TRUE)
-remotes::install_github("ryanrbart/RHESSysWorkflowinR", ref="main", dependencies = TRUE, auth_token = "")
+remotes::install_github("RHESSys/RHESSysPreprocessing", ref="replace_grass", dependencies = TRUE)
+remotes::install_github("ryanrbart/RHESSysWorkflowinR", ref="main", dependencies = TRUE)
 
 
 # Github packages that are required by RHESSysWorkflowinR but may not be

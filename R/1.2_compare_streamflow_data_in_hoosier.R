@@ -21,12 +21,12 @@ q_gage_details <- RHESSysWorkflowinR::get_usgs_streamflow_gage_details(watershed
 
 # Get streamflow data
 q <- RHESSysWorkflowinR::get_usgs_streamflow_data(usgs_streamflow_gage_details = q_gage_details,
-                                                  out = "data/streamflow/q_carb.csv")
+                                                  out = "data/streamflow/q_hoosier.csv")
 
 # Make summary table
 q_data_summary <- RHESSysWorkflowinR::generate_usgs_streamflow_data_summary(usgs_streamflow_gage_details = q_gage_details, 
                                                                             usgs_streamflow = q,
-                                                                            out = "data/streamflow/q_carb_summary_table.csv")
+                                                                            out = "data/streamflow/q_hoosier_summary_table.csv")
 print(q_data_summary)
 
 q_annual <- q %>% 
